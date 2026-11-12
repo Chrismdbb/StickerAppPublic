@@ -4,7 +4,7 @@ Watches a folder of photo-booth pictures and prints + die-cuts each one as a sti
 Liene PixCut S1 printers, with a local dashboard, a Reprint button, paper tracking and a
 printer pool (round-robin, skipping busy or sleeping printers).
 
-Built for photo booths running Windows with dslrBooth, but it works with anything that drops
+Built for photo booths running Windows with Lumabooth, but it works with anything that drops
 1200 x 2100 images into a folder.
 
 > **Not affiliated with Liene.** This is an independent project. It talks to the printer over
@@ -19,7 +19,9 @@ Built for photo booths running Windows with dslrBooth, but it works with anythin
 
 ## Set up (once)
 
-You need a Windows PC, Python 3, and the S1 connected by USB.
+You need a Windows PC, Python 3, the S1 connected by USB, and Lumabooth set up to make sticker sheets.
+
+### Part 1: Install StickerApp
 
 1. Open the repo folder in PowerShell and run:
 
@@ -28,6 +30,51 @@ You need a Windows PC, Python 3, and the S1 connected by USB.
 
 2. **Close the Liene Photo app** if you have it. It claims the same USB connection as StickerApp,
    so only one of them can run at a time.
+
+### Part 2: Set up Lumabooth
+
+StickerApp prints whatever picture Lumabooth saves into the event's **Prints** folder, so Lumabooth
+has to produce pictures that are the right size and shape for a sticker sheet.
+
+**1. Create an AI prompt for the stickers.** In Lumabooth, create an AI prompt that turns each guest's
+photo into a sticker-style picture. Write it so the result is a character on a plain white
+background with a wide empty margin, because the printer cuts around the artwork. Here is an
+example for Halloween stickers. Copy it and change the details to suit your event:
+
+> Turn the person in this photo into a fun, cute cartoon-style Halloween sticker character. Keep their
+> face, hair, glasses and expression clearly recognizable. Give them a Halloween costume, such as a
+> witch hat, a vampire cape or a skeleton outfit, and add a few small spooky details like bats,
+> pumpkins and spiderwebs close to them. Use bold, bright colors and clean outlines, like a die-cut
+> sticker. Use a plain solid white background with no shadows, gradients or scenery. Show them from
+> the waist up, centered in a tall portrait picture. Leave a wide empty white margin of about half
+> an inch on every side: no part of the picture, including hats, hands and decorations, may come
+> near the edges.
+
+**2. Set the print size.** The sticker paper is 4 x 7 inches, so in Lumabooth set the print to a
+**custom paper size of 4" wide by 7" tall** (portrait). The finished image is then 1200 x 2100
+pixels, which is what StickerApp expects.
+
+**3. Keep the artwork out of the 0.5" margin.** Nothing in the picture may go inside **0.5 inch from
+every edge** (top, bottom, left and right). The printer cuts a line just outside the artwork,
+and anything too close to the edge can be clipped or cut badly. The prompt above asks for this
+margin. If you design your own layouts or overlays, keep them inside it as well. (If a picture
+does come out too close to an edge, StickerApp shrinks it slightly to fit by default, but it is
+better to get it right in Lumabooth.)
+
+**4. Find the Prints folder StickerApp should watch.** StickerApp needs to know which folder
+Lumabooth saves the finished pictures into:
+
+1. In Lumabooth, open your event on the machine and go to **General**.
+2. Find the event's file location (the folder where the event's files are saved) and **copy that location**.
+3. Open Windows File Explorer, paste the location into the address bar, and press Enter.
+4. Inside that folder, open the folder named **Prints**. This is where the finished pictures appear.
+5. Click the address bar at the top of File Explorer so the full path turns into text, and copy it
+   (Ctrl+C). It will look something like `C:\...\Your Event\Prints`.
+6. You will paste this path into StickerApp's **Settings > Folder to watch** when you first
+   start it (see the next section).
+
+Each new event usually has its own folder, so repeat these steps and update **Folder to watch**
+whenever you start a new event.
 
 ## Start it with a real printer
 
@@ -49,9 +96,9 @@ You need a Windows PC, Python 3, and the S1 connected by USB.
    In the browser, a printer card appears under **Printers**. It says **Warming up** for a few
    seconds, then **Ready** in green. If you see "No printers yet", see
    [When something looks wrong](#when-something-looks-wrong).
-4. **Choose the folder to watch.** Click **Settings**, type or **Browse** to the folder your booth
-   software saves finished photos into, and press **Save settings**. Photos already in the
-   folder are ignored; only new ones print.
+4. **Choose the folder to watch.** Click **Settings**, paste the **Prints** folder path you copied
+   in [Part 2](#part-2-set-up-lumabooth) into **Folder to watch** (or press **Browse** and pick it),
+   and press **Save settings**. Photos already in the folder are ignored; only new ones print.
 5. **Test it.** Drop one 1200 x 2100 photo into the folder. Within a few seconds it appears under
    **Queue and history**, goes to **Printing**, and the printer prints and cuts it. A sheet takes
    about 2 minutes 15 seconds. When it says **done**, check the sticker.

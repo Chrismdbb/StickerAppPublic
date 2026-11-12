@@ -35,9 +35,9 @@ DEFAULTS = {
     "cut_offset_px": 20,
     "non_4x7": "reject",       # reject | fit
     "edge_policy": "shrink",   # shrink | clamp | fail
-    "config_version": 2,
+    "config_version": 3,
     "max_attempts": 2,
-    "paper_capacity": 15,      # sheets in a full load of paper
+    "paper_capacity": 18,      # sheets in a full load of paper
     "paper_low_at": 3,         # "low on paper" when this many sheets or fewer are left
     "history_days": 30,
     "slow_print_seconds": 150, # a print running longer than this triggers live status checks
@@ -73,6 +73,10 @@ class Config:
                     if self.data["edge_policy"] == "clamp":
                         self.data["edge_policy"] = "shrink"
                     self.data["config_version"] = 2
+                if saved.get("config_version", 1) < 3:       # a full load used to be 15; it is 18 now
+                    if self.data["paper_capacity"] == 15:
+                        self.data["paper_capacity"] = 18
+                    self.data["config_version"] = 3
             except Exception as e:
                 log.error("Could not read %s (%s); starting with defaults", path, e)
 

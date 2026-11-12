@@ -40,7 +40,7 @@ while the app runs makes the dashboard say "Lost contact".
 
 ## Paper tracking
 
-Each printer card counts the sheets left in its tray (a full load is set in Settings, 15 by
+Each printer card counts the sheets left in its tray (a full load is set in Settings, 18 by
 default). The count goes down by one for every finished sticker sheet.
 
 | Sheets left | What the card does |

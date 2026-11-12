@@ -185,7 +185,7 @@ Every photo becomes a row with a preview showing the cut line (click the preview
 ## Paper tracking
 
 The printer cannot tell the app how much paper is in it, so the app counts for you. Each card shows the
-sheets left (a full load is 15 by default, changeable in Settings). Every finished sheet takes one off.
+sheets left (a full load is 18 by default, changeable in Settings). Every finished sheet takes one off.
 
 ![Printer cards showing low paper, one page left and out of paper](docs/images/paper-warnings.png)
 

@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+*.log
+usb_core_strings.txt
+s1_job_flow.txt
+s1_job_lines.txt
+test_image.jpg
+test_cut.plt
+test_image_2.png
+*overlay*.png
+
+app/data/
+app/data/

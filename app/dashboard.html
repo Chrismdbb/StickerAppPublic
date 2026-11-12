@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StickerApp</title>
+<style>
+:root {
+  --bg: #f4f5f7; --card: #ffffff; --ink: #1c2230; --muted: #667085; --line: #e3e6ec;
+  --accent: #3b5bdb; --accent-ink: #ffffff;
+  --ok: #1a7f4b; --ok-bg: #e3f6ec; --busy: #1c64c4; --busy-bg: #e1edfc;
+  --warn: #9a6200; --warn-bg: #fff3d6; --bad: #b42318; --bad-bg: #fde7e4;
+  --off: #667085; --off-bg: #eceef2; --info-bg: #e8edff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151c; --card: #1b2029; --ink: #e8ebf2; --muted: #98a1b3; --line: #2b3240;
+    --accent: #6f8cff; --accent-ink: #0d1117;
+    --ok: #4cc38a; --ok-bg: #153427; --busy: #79b0ff; --busy-bg: #172b49;
+    --warn: #f2b84b; --warn-bg: #3a2e12; --bad: #ff8a7a; --bad-bg: #3d1b17;
+    --off: #98a1b3; --off-bg: #262c38; --info-bg: #1d2848;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 14px 22px;
+  background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+header h1 { font-size: 18px; margin: 0; }
+.sim { background: var(--warn-bg); color: var(--warn); font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
+.stats { color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
+.stats b { color: var(--ink); }
+.spacer { flex: 1; }
+main { max-width: 1200px; margin: 0 auto; padding: 18px 22px 60px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 26px 0 10px; }
+button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--card);
+  color: var(--ink); border-radius: 8px; padding: 6px 12px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button.small { padding: 3px 9px; font-size: 12.5px; }
+button:disabled { opacity: .5; cursor: default; }
+.banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; font-weight: 500; }
+.banner.warn { background: var(--warn-bg); color: var(--warn); }
+.banner.bad { background: var(--bad-bg); color: var(--bad); }
+.banner.info { background: var(--info-bg); color: var(--accent); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.pname { font-weight: 650; font-size: 15px; cursor: pointer; }
+.serial { color: var(--muted); font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.s-idle, .s-done { background: var(--ok-bg); color: var(--ok); }
+.s-busy, .s-printing { background: var(--busy-bg); color: var(--busy); }
+.s-starting, .s-queued, .s-preparing, .s-held { background: var(--warn-bg); color: var(--warn); }
+.s-attention, .s-failed, .s-nopaper { background: var(--bad-bg); color: var(--bad); }
+.s-offline, .s-disabled, .s-cancelled { background: var(--off-bg); color: var(--off); }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.detail { color: var(--muted); margin: 6px 0; min-height: 20px; }
+.bar { height: 6px; background: var(--off-bg); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.hot { background: var(--warn); }
+.card { transition: box-shadow .2s, border-color .2s; }
+.card.paper-low { border-color: #f5b700; box-shadow: 0 0 0 3px rgba(245,183,0,.25), 0 0 18px 2px rgba(245,183,0,.45); }
+.card.paper-last { border-color: #d92d20; animation: flash 1s ease-in-out infinite; }
+.card.paper-out { border-color: #d92d20; box-shadow: 0 0 0 3px rgba(217,45,32,.28); }
+@keyframes flash {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(217,45,32,.25), 0 0 6px 0 rgba(217,45,32,.30); }
+  50% { box-shadow: 0 0 0 4px rgba(217,45,32,.40), 0 0 24px 6px rgba(217,45,32,.60); } }
+@media (prefers-reduced-motion: reduce) { .card.paper-last { animation: none; box-shadow: 0 0 0 3px rgba(217,45,32,.35); } }
+.paperline { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  margin: -6px -8px 10px; padding: 6px 10px; border-radius: 8px; font-weight: 800;
+  letter-spacing: .05em; text-transform: uppercase; font-size: 13px; }
+.paperline.low { background: #ffd43b; color: #4a3800; }
+.paperline.last, .paperline.out { background: #d92d20; color: #fff; }
+.paperline.last { animation: flashbg 1s ease-in-out infinite; }
+@keyframes flashbg { 0%, 100% { background: #d92d20; } 50% { background: #8f1d14; } }
+@media (prefers-reduced-motion: reduce) { .paperline.last { animation: none; } }
+.paperline button { text-transform: none; letter-spacing: 0; font-weight: 700; padding: 2px 10px; }
+.bar i.low { background: #f5b700; } .bar i.last, .bar i.out { background: #d92d20; }
+.left { cursor: pointer; text-decoration: underline dotted; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.empty { color: var(--muted); padding: 18px; text-align: center; }
+form.settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px 18px; }
+label { display: block; font-weight: 600; font-size: 12.5px; margin-bottom: 4px; }
+label small { display: block; font-weight: 400; color: var(--muted); }
+input[type=text], input[type=number], select { width: 100%; font: inherit; padding: 7px 9px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.field.wide { grid-column: 1 / -1; }
+.inline { display: flex; gap: 8px; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-weight: 500; }
+.check input { margin-top: 3px; }
+.lan { background: var(--info-bg); border-radius: 10px; padding: 14px 16px; }
+.lan-title { font-weight: 650; font-size: 15px; margin-bottom: 4px; }
+.lan .addr { font: 700 24px/1.3 ui-monospace, Menlo, Consolas, monospace; color: var(--accent); word-break: break-all; margin: 6px 0 2px; }
+.lan .alt { font-size: 13px; color: var(--muted); }
+.lan .alt code { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--ink); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; overflow: hidden; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.thumb { width: 64px; }
+td.thumb img { width: 48px; height: auto; border: 1px solid var(--line); border-radius: 4px; display: block; background: #fff; }
+.name { font-weight: 600; word-break: break-all; }
+.sub { font-size: 12.5px; color: var(--muted); }
+.sub.err { color: var(--bad); }
+.sub.warnc { color: var(--warn); }
+td.act { white-space: nowrap; text-align: right; }
+td.act button { margin-left: 4px; }
+pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  overflow: auto; max-height: 280px; font-size: 12px; }
+details summary { cursor: pointer; color: var(--muted); font-weight: 600; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--ink);
+  color: var(--bg); padding: 9px 16px; border-radius: 10px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>StickerApp<span id="simtag" class="sim" hidden>SIMULATED PRINTERS</span></h1>
+  <div class="stats" id="stats"></div>
+  <div class="spacer"></div>
+  <span class="sub" id="watching"></span>
+  <button id="settingsBtn">Settings</button>
+  <button id="pauseBtn" class="primary">Pause</button>
+</header>
+<main>
+  <div id="banners"></div>
+
+  <h2>Printers</h2>
+  <div class="grid" id="printers"></div>
+
+  <section id="settingsBox" hidden>
+    <h2>Settings</h2>
+    <div class="card">
+      <form class="settings" id="form" onsubmit="return false">
+        <div class="field wide">
+          <label for="watch_folder">Folder to watch
+            <small>Every new photo that lands in this folder becomes a print job. Photos already in it are ignored.</small></label>
+          <div class="inline"><input type="text" id="watch_folder" placeholder="C:\Photos\Event">
+            <button type="button" id="browseBtn">Browse...</button></div>
+          <label class="check" id="existingRow" hidden style="margin-top:8px">
+            <input type="checkbox" id="print_existing"> Also print the photos already in this folder</label>
+        </div>
+        <div class="field wide lan">
+          <div class="lan-title">Want to see this dashboard on another device?</div>
+          <div id="lanAddr"></div>
+          <label class="check" style="margin-top:10px"><input type="checkbox" id="network_access"> Let phones and tablets open this dashboard
+            <small>Use a device on the same wifi as this PC. Takes effect after restarting StickerApp.</small></label>
+        </div>
+        <div class="field"><label class="check"><input type="checkbox" id="auto_print"> Print automatically
+          <small>Off: new photos wait as "Held" until you press Print.</small></label></div>
+        <div class="field"><label class="check"><input type="checkbox" id="recursive"> Include sub-folders</label></div>
+        <div class="field"><label class="check"><input type="checkbox" id="exact_size_only"> Only print 1200x2100 images
+          <small>Any other file in the folder is skipped and counted, never printed.</small></label></div>
+        <div class="field"><label for="copies">Sheets per photo</label><input type="number" id="copies" min="1" max="10"></div>
+        <div class="field"><label for="cut_mode">Cut shape</label>
+          <select id="cut_mode"><option value="contour">Die-cut around each person</option>
+            <option value="rect">Rectangle around each photo</option></select></div>
+        <div class="field"><label for="cut_offset_px">White border (pixels)
+          <small>Gap between the artwork and the cut line. 20 px is about 1.7 mm.</small></label>
+          <input type="number" id="cut_offset_px" min="0" max="80"></div>
+        <div class="field"><label for="non_4x7">If a photo is not 4:7</label>
+          <select id="non_4x7"><option value="reject">Reject it (recommended)</option>
+            <option value="fit">Scale to fit and center</option></select></div>
+        <div class="field"><label for="edge_policy">If artwork touches the sheet edge</label>
+          <select id="edge_policy"><option value="shrink">Shrink the artwork slightly to fit (recommended)</option>
+            <option value="clamp">Pull the cut line inward (can clip the edge)</option>
+            <option value="fail">Fail the job</option></select></div>
+        <div class="field"><label for="max_attempts">Attempts per job
+          <small>A job that fails before printing is retried on another printer.</small></label>
+          <input type="number" id="max_attempts" min="1" max="5"></div>
+        <div class="field"><label for="paper_capacity">Sheets in a full load of paper
+          <small>"Paper loaded" sets a printer back to this number.</small></label>
+          <input type="number" id="paper_capacity" min="1" max="100"></div>
+        <div class="field"><label for="paper_low_at">Warn "low on paper" at (sheets left)
+          <small>The printer card turns yellow at this many sheets or fewer, red at 1, and stops at 0.</small></label>
+          <input type="number" id="paper_low_at" min="1" max="50"></div>
+        <div class="field wide"><button class="primary" id="saveBtn" type="button">Save settings</button></div>
+      </form>
+    </div>
+  </section>
+
+  <h2>Queue and history</h2>
+  <div id="jobs"></div>
+
+  <h2>Log</h2>
+  <details><summary>Show recent activity</summary><pre id="log"></pre></details>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let last = null, dirty = false, settingsBuilt = false, printerNames = {};
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 3500);
+}
+async function post(path, body) {
+  try {
+    const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json",
+      "X-Requested-With": "stickerapp" }, body: JSON.stringify(body || {}) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "failed");
+    refresh(); return j;
+  } catch (e) { toast(e.message); throw e; }
+}
+const when = t => t ? new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+const STATE_LABEL = { idle: "Ready", busy: "Busy", starting: "Starting", offline: "Not found",
+  attention: "Needs attention", disabled: "Disabled", nopaper: "Out of paper" };
+
+function renderPrinters(s) {
+  if (!s.printers.length) return '<div class="card empty">No printers yet. Plug the S1 into USB and press its power button.</div>';
+  return s.printers.map(p => {
+    const lv = p.paper.level, left = p.paper.left, cap = p.paper.capacity;
+    const pct = Math.max(0, Math.min(100, left / cap * 100));
+    const sim = s.sim ? `<button class="small" data-act="sim" data-serial="${esc(p.serial)}" data-do="${p.state === "offline" ? "wake" : "sleep"}">${p.state === "offline" ? "Wake" : "Sleep"} (sim)</button>
+      <button class="small" data-act="sim" data-serial="${esc(p.serial)}" data-do="fail-next">Fail next job (sim)</button>` : "";
+    const loaded = `<button class="small${lv === "ok" ? "" : " primary"}" data-act="reset-paper" data-serial="${esc(p.serial)}">Paper loaded</button>`;
+    const strip = lv === "ok" ? "" :
+      lv === "low" ? `<div class="paperline low"><span>Low on paper &middot; ${left} left</span></div>` :
+      lv === "last" ? `<div class="paperline last"><span>1 page left</span></div>` :
+      `<div class="paperline out"><span>Out of paper</span>${loaded}</div>`;
+    return `<div class="card paper-${lv}">
+      ${strip}
+      <div class="row"><span class="pname" data-act="rename" data-serial="${esc(p.serial)}" data-name="${esc(p.name)}" title="Click to rename">${esc(p.name)}</span>
+        <span class="pill s-${p.state}">${STATE_LABEL[p.state] || p.state}</span></div>
+      <div class="serial">${esc(p.serial)}${p.raw ? " &middot; state " + esc(p.raw) : ""}</div>
+      <div class="detail">${esc(p.progress || p.detail)}${p.job_id ? " (job #" + p.job_id + ")" : ""}</div>
+      <div class="bar"><i class="${lv}" style="width:${pct}%"></i></div>
+      <div class="sub"><span class="left" data-act="set-paper" data-serial="${esc(p.serial)}" data-left="${left}" title="Click to type the number of sheets loaded">${left} sheet${left === 1 ? "" : "s"} left</span> of ${cap} &middot; ${p.total_sheets} printed in total</div>
+      <div class="btns">
+        ${p.state === "attention" ? `<button class="small primary" data-act="presume" data-serial="${esc(p.serial)}">Resume</button>` : ""}
+        ${lv === "out" ? "" : loaded}
+        <button class="small" data-act="${p.enabled ? "disable" : "enable"}" data-serial="${esc(p.serial)}">${p.enabled ? "Disable" : "Enable"}</button>
+        ${sim}</div></div>`;
+  }).join("");
+}
+
+function renderJobs(s) {
+  if (!s.jobs.length) return '<div class="card empty">Nothing yet. Drop a photo into the watched folder.</div>';
+  const rows = s.jobs.map(j => {
+    const btn = (act, label, primary) => `<button class="small${primary ? " primary" : ""}" data-act="job" data-do="${act}" data-id="${j.id}">${label}</button>`;
+    let actions = "";
+    if (j.status === "held") actions = btn("print", "Print", true) + btn("cancel", "Cancel");
+    else if (j.status === "queued") actions = btn("cancel", "Cancel");
+    else if (j.status === "done") actions = btn("reprint", "Reprint");
+    else if (j.status === "failed" && j.stickers) actions = btn("retry", "Retry", true) + btn("reprint", "Reprint");
+    else if (j.status === "cancelled" && j.stickers) actions = btn("retry", "Retry");
+    const label = j.status === "printing" && j.progress ? j.progress : j.status;
+    const tag = j.kind === "reprint" ? ` <span class="sub">(reprint of #${j.parent_id})</span>` : "";
+    return `<tr>
+      <td class="thumb">${["preparing"].includes(j.status) || (j.status === "failed" && !j.stickers) ? "" : `<a href="/thumb/${j.id}.jpg" target="_blank"><img src="/thumb/${j.id}.jpg" alt=""></a>`}</td>
+      <td><div class="name">#${j.id} ${esc(j.name)}${tag}</div>
+        ${j.error ? `<div class="sub err">${esc(j.error)}</div>` : ""}
+        ${j.warning ? `<div class="sub warnc">${esc(j.warning)}</div>` : ""}
+        ${j.stickers > 1 ? `<div class="sub">${j.stickers} stickers on this sheet</div>` : ""}</td>
+      <td><span class="pill s-${j.status}">${esc(label)}</span></td>
+      <td>${esc(printerNames[j.printer] || j.printer || "")}</td>
+      <td class="sub">${when(j.created)}</td>
+      <td class="act">${actions}</td></tr>`;
+  }).join("");
+  return `<table><thead><tr><th></th><th>Photo</th><th>Status</th><th>Printer</th><th>Added</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function buildSettings(c) {
+  for (const k of ["watch_folder", "copies", "cut_mode", "cut_offset_px", "non_4x7", "edge_policy", "max_attempts", "paper_capacity", "paper_low_at"])
+    $(k).value = c[k];
+  for (const k of ["auto_print", "recursive", "exact_size_only", "network_access"]) $(k).checked = !!c[k];
+}
+
+function renderLan(s) {
+  const urls = s.lan_urls || [];
+  let h;
+  if (urls.length) {
+    h = `<div>On your phone or tablet, open this address:</div><div class="addr">${esc(urls[0].replace(/^http:\/\/|\/$/g, ""))}</div>` +
+      (urls.length > 1 ? `<div class="alt">Or try <code>${esc(urls[1].replace(/^http:\/\/|\/$/g, ""))}</code> (some devices can find the PC by name).</div>` : "");
+  } else if (s.config.network_access) {
+    h = `<div class="alt">Saved. Restart StickerApp and the address will appear here.</div>`;
+  } else {
+    h = `<div class="alt">Tick the box below, save, and restart StickerApp. The address will appear here.</div>`;
+  }
+  if ($("lanAddr").dataset.h !== h) { $("lanAddr").innerHTML = h; $("lanAddr").dataset.h = h; }
+}
+
+function render(s) {
+  printerNames = Object.fromEntries(s.printers.map(p => [p.serial, p.name]));
+  $("simtag").hidden = !s.sim;
+  $("stats").innerHTML = `<span><b>${s.counts.queued}</b> queued</span><span><b>${s.counts.printing}</b> printing</span>` +
+    (s.counts.held ? `<span><b>${s.counts.held}</b> held</span>` : "") +
+    `<span><b>${s.counts.done_today}</b> done today</span>` +
+    (s.counts.failed_today ? `<span><b>${s.counts.failed_today}</b> failed today</span>` : "") +
+    (s.skipped_total ? `<span><b>${s.skipped_total}</b> skipped (wrong size)</span>` : "");
+  $("watching").textContent = s.config.watch_folder ? "Watching " + s.config.watch_folder : "";
+  $("browseBtn").hidden = !s.local;
+  renderLan(s);
+  $("pauseBtn").textContent = s.config.paused ? "Resume printing" : "Pause";
+  $("banners").innerHTML = s.banners.map(b => `<div class="banner ${b.level}">${esc(b.text)}</div>`).join("");
+  const p = renderPrinters(s); if (p !== $("printers").dataset.h) { $("printers").innerHTML = p; $("printers").dataset.h = p; }
+  const j = renderJobs(s); if (j !== $("jobs").dataset.h) { $("jobs").innerHTML = j; $("jobs").dataset.h = j; }
+  $("log").textContent = s.log.join("\n");
+  if (!settingsBuilt) {
+    buildSettings(s.config); settingsBuilt = true;
+    if (!s.config.watch_folder) $("settingsBox").hidden = false;
+  } else if (!dirty) buildSettings(s.config);
+  $("existingRow").hidden = $("watch_folder").value.trim() === s.config.watch_folder;
+}
+
+async function refresh() {
+  try {
+    const r = await fetch("/api/state"); last = await r.json(); render(last);
+  } catch (e) { $("banners").innerHTML = '<div class="banner bad">Lost contact with StickerApp. Is it still running?</div>'; }
+}
+
+document.addEventListener("input", e => { if (e.target.closest("#form")) { dirty = true; if (last) $("existingRow").hidden = $("watch_folder").value.trim() === last.config.watch_folder; } });
+$("settingsBtn").onclick = () => { $("settingsBox").hidden = !$("settingsBox").hidden; };
+$("pauseBtn").onclick = () => post(last && last.config.paused ? "/api/resume" : "/api/pause");
+$("browseBtn").onclick = async () => {
+  try { const j = await post("/api/browse"); if (j.path) { $("watch_folder").value = j.path; dirty = true; $("watch_folder").dispatchEvent(new Event("input", { bubbles: true })); } } catch (e) {}
+};
+$("saveBtn").onclick = async () => {
+  const body = { watch_folder: $("watch_folder").value, auto_print: $("auto_print").checked, recursive: $("recursive").checked,
+    exact_size_only: $("exact_size_only").checked, network_access: $("network_access").checked, print_existing: $("print_existing").checked };
+  for (const k of ["copies", "cut_offset_px", "max_attempts", "paper_capacity", "paper_low_at"]) body[k] = $(k).value;
+  for (const k of ["cut_mode", "non_4x7", "edge_policy"]) body[k] = $(k).value;
+  try { await post("/api/settings", body); dirty = false; $("print_existing").checked = false; toast("Settings saved"); } catch (e) {}
+};
+document.addEventListener("click", async e => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const act = el.dataset.act, serial = el.dataset.serial;
+  try {
+    if (act === "job") {
+      if (el.dataset.do === "reprint" && !confirm("Print this sheet again?")) return;
+      await post(`/api/jobs/${el.dataset.id}/${el.dataset.do}`);
+    } else if (act === "presume") await post(`/api/printers/${encodeURIComponent(serial)}/resume`);
+    else if (act === "rename") { const n = prompt("Name for this printer:", el.dataset.name); if (n) await post(`/api/printers/${encodeURIComponent(serial)}/rename`, { name: n }); }
+    else if (act === "set-paper") { const n = prompt("How many sheets are loaded in this printer?", el.dataset.left);
+      if (n !== null && n.trim() !== "") await post(`/api/printers/${encodeURIComponent(serial)}/set-paper`, { sheets: n.trim() }); }
+    else if (act === "sim") await post(`/api/sim/${encodeURIComponent(serial)}/${el.dataset.do}`);
+    else if (["enable", "disable", "reset-paper"].includes(act)) await post(`/api/printers/${encodeURIComponent(serial)}/${act}`);
+  } catch (err) {}
+});
+refresh(); setInterval(refresh, 1500);
+</script>
+</body>
+</html>

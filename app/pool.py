@@ -262,6 +262,8 @@ class Printer:
         self.needs_ack = False           # failed job: wait for a person to check and press Resume
         self.last_poll = 0.0
         self.last_unfamiliar = None
+        self.auto_off = None             # raw "auto-off-interval" as the printer reports it (read-only)
+        self.went_offline = None         # when it last dropped off USB (asleep or unplugged)
 
 
 # --------------------------------------------------------------------------- #
@@ -335,7 +337,13 @@ class Manager(threading.Thread):
             p.transport, p.link = t, S1Link(t)
             p.state, p.detail, p.needs_ack = "starting", "Connected, checking status...", False
             p.last_poll = 0
+            p.went_offline = None
             log.info("Printer %s connected", p.serial)
+            try:                          # read-only; we never change the setting
+                p.auto_off = p.link.get_prop("auto-off-interval")
+                log.info("Printer %s auto-off-interval reads %r", p.serial, p.auto_off)
+            except PrinterError as e:
+                log.info("Printer %s: could not read auto-off-interval (%s)", p.serial, e)
         except PrinterError as e:
             p.state, p.detail = "offline", str(e)
 
@@ -347,6 +355,7 @@ class Manager(threading.Thread):
                 pass
         p.transport = p.link = None
         p.state, p.detail, p.raw = "offline", reason, None
+        p.went_offline = p.went_offline or time.time()
         self.backend.forget(p.serial)
         if not quiet:
             log.info("Printer %s offline: %s", p.serial, reason)
@@ -409,16 +418,28 @@ class Manager(threading.Thread):
             if not plist:
                 return None
             failed_on = set(filter(None, (job.get("failed_on") or "").split(",")))
-            others_possible = any(p.serial not in failed_on and p.state != "offline" for p in plist)
+            # Only wait for another printer that can take the job without a person's help: not asleep,
+            # not needing attention, and with paper. Otherwise the job would wait forever.
+            others_possible = any(p.serial not in failed_on and p.state in ("idle", "busy", "starting")
+                                  and self.cfg.printer(p.serial)["paper_left"] > 0 for p in plist)
+            # A reprint prefers a printer other than the one that made the original, but only as a
+            # preference: if the others are busy it uses the original when that one is free.
+            prefer_not = None
+            if job.get("kind") == "reprint" and job.get("parent_id"):
+                parent = self.db.get_job(job["parent_id"])
+                prefer_not = parent["printer"] if parent else None
             n = len(plist)
-            for k in range(n):
-                p = plist[(self.rr + k) % n]
-                if not self._ready(p):
-                    continue
-                if p.serial in failed_on and others_possible:
-                    continue
-                self.rr = (self.rr + k + 1) % n
-                return p
+            for avoid_parent in ((True, False) if prefer_not else (False,)):
+                for k in range(n):
+                    p = plist[(self.rr + k) % n]
+                    if not self._ready(p):
+                        continue
+                    if p.serial in failed_on and others_possible:
+                        continue
+                    if avoid_parent and p.serial == prefer_not:
+                        continue
+                    self.rr = (self.rr + k + 1) % n
+                    return p
         return None
 
     def dispatch(self):
@@ -562,6 +583,8 @@ class Manager(threading.Thread):
                     "job_id": p.job_id,
                     "progress": self.progress.get(p.job_id, "") if p.job_id else "",
                     "total_sheets": pc["total_sheets"],
+                    "auto_off": p.auto_off,
+                    "offline_since": p.went_offline if p.state == "offline" else None,
                 })
         return out
 
@@ -818,7 +841,7 @@ class App:
                 raise ValueError("The sheet files for this job were deleted")
             new = self.db.add_job(source_path=job["source_path"], name=job["name"], status=QUEUED,
                                   kind="reprint", parent_id=job_id, stickers=job["stickers"],
-                                  warning=job["warning"], failed_on=job.get("printer") or "")
+                                  warning=job["warning"])
             for src, dst in zip(self.job_files(job_id), self.job_files(new)):
                 shutil.copyfile(src, dst)
         else:
@@ -896,7 +919,10 @@ class App:
                 banners.append(("warn", "Jobs are waiting but no printer is ready. "
                                         "If it went to sleep, press its power button."))
         for p in printers:
-            if p["state"] == "attention":
+            if p["enabled"] and p["state"] == "offline" and p["offline_since"]:
+                banners.append(("bad", f"{p['name']} is asleep or disconnected. Press its power button to wake it "
+                                       "(if that does not help, check the USB cable)."))
+            elif p["state"] == "attention":
                 banners.append(("bad", f"{p['name']}: {p['detail']}"))
             elif p["enabled"] and p["paper"]["level"] == "out":
                 banners.append(("bad", f"{p['name']} is out of paper. Load paper, then press Paper loaded."))

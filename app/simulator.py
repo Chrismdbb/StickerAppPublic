@@ -143,6 +143,8 @@ class FakeS1:
             return sub
         if name == "printer-state-alerts":
             return "::5306" if ps == "60" else "::0"
+        if name == "auto-off-interval":
+            return 900
         if name == "device-info":
             return {"fw_ver": "SIM", "model": "DHP700", "sn_all": self.serial}
         return {}

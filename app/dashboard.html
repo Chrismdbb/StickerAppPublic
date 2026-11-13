@@ -231,6 +231,7 @@ function renderPrinters(s) {
       <div class="detail">${esc(p.progress || p.detail)}${p.job_id ? " (job #" + p.job_id + ")" : ""}</div>
       <div class="bar"><i class="${lv}" style="width:${pct}%"></i></div>
       <div class="sub"><span class="left" data-act="set-paper" data-serial="${esc(p.serial)}" data-left="${left}" title="Click to type the number of sheets loaded">${left} sheet${left === 1 ? "" : "s"} left</span> of ${cap} &middot; ${p.total_sheets} printed in total</div>
+      ${p.auto_off != null ? `<div class="sub">Auto-off setting: ${esc(String(p.auto_off))}${Number(p.auto_off) >= 60 ? " (" + Math.round(Number(p.auto_off) / 60) + " min if seconds)" : ""}</div>` : ""}
       <div class="btns">
         ${p.state === "attention" ? `<button class="small primary" data-act="presume" data-serial="${esc(p.serial)}">Resume</button>` : ""}
         ${lv === "out" ? "" : loaded}

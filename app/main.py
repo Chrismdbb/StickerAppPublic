@@ -83,7 +83,7 @@ def main():
         root.error("Port %d is already in use. StickerApp may already be running: %s", port, url)
         if args.open:
             webbrowser.open(url)
-        return 1
+        return 2     # supervisor.py reads 2 as "already running, do not restart"
 
     app.start()
     serve_in_thread(server)

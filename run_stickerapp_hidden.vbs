@@ -8,4 +8,4 @@ here = fso.GetParentFolderName(WScript.ScriptFullName)
 sh.CurrentDirectory = here
 py = here & "\.venv\Scripts\pythonw.exe"
 If Not fso.FileExists(py) Then py = "pythonw"
-sh.Run """" & py & """ """ & here & "\app\main.py""", 0, False
+sh.Run """" & py & """ """ & here & "\app\supervisor.py""", 0, False

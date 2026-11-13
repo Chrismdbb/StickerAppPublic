@@ -8,7 +8,8 @@ if exist ".venv\Scripts\python.exe" (
 ) else (
   set "PY=py"
 )
-"%PY%" app\main.py --open %*
+rem supervisor.py restarts the app if it crashes or freezes. Closing this window stops both.
+"%PY%" app\supervisor.py --open %*
 echo.
 echo StickerApp stopped. Press any key to close this window.
 pause >nul

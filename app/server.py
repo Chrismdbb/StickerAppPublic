@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -96,9 +97,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(500, {"ok": False, "error": f"internal error: {e}"})
 
 
+class Server(ThreadingHTTPServer):
+    # On Windows, address reuse lets a second copy of the app bind the same port instead of failing,
+    # so two copies could run at once and fight over the printer. Elsewhere it only speeds up restarts.
+    allow_reuse_address = sys.platform != "win32"
+
+
 def make_server(app, host, port):
     handler = type("BoundHandler", (Handler,), {"app": app})
-    srv = ThreadingHTTPServer((host, port), handler)
+    srv = Server((host, port), handler)
     srv.daemon_threads = True
     return srv
 

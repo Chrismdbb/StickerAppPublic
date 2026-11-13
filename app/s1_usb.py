@@ -208,6 +208,15 @@ class S1Link:
             raise PrinterError(f"unexpected status reply: {r}", "status")
         return tuple(str(x) for x in res[:3])
 
+    def get_prop(self, name):
+        """Read one printer property (read-only). Returns the raw value, or None if it has none."""
+        r = self.command("get-prop", [name])
+        res = r.get("result")
+        val = res[0] if isinstance(res, list) and res else None
+        if isinstance(val, dict) and name in val:      # the S1 answers {"auto-off-interval": 1200}
+            val = val[name]
+        return val
+
     def device_info(self):
         r = self.command("get-prop", ["device-info"])
         for item in r.get("result") or []:

@@ -23,13 +23,96 @@ You need a Windows PC, Python 3, the S1 connected by USB, and Lumabooth set up t
 
 ### Part 1: Install StickerApp
 
-1. Open the repo folder in PowerShell and run:
+You only do this once, and you do not need to be technical. Every step says exactly what to click.
+
+**Step 1. Download StickerApp and put it somewhere you will remember.**
+
+1. Go to [github.com/Chrismdbb/StickerAppPublic](https://github.com/Chrismdbb/StickerAppPublic).
+2. Click the green **Code** button, then click **Download ZIP**.
+
+   ![Click the green Code button, then Download ZIP](docs/images/step-download.svg)
+
+3. Open your **Downloads** folder (it is in the left column of File Explorer). Find the file
+   called `StickerAppPublic-main.zip`, **right-click it and choose Extract All...**, then click
+   **Browse**, pick your **Documents** folder, and click **Extract**.
+4. You now have a folder called **StickerAppPublic-main** inside **Documents**. Open it.
+
+> The folder must stay where you put it. If you move it later, run the installer again, so pick
+> a spot you are happy with, like Documents.
+
+**Step 2. Double-click `install_stickerapp.bat`.** It is inside the folder you just opened. A
+black window opens and does everything for you: it installs Python if the PC does not have it,
+then downloads what StickerApp needs. This takes a few minutes and prints a lot of text. That is
+normal. Wait until it says **All done!**
+
+If Windows shows a blue box saying **"Windows protected your PC"**, click **More info**, then
+**Run anyway**. Windows shows this for any file downloaded from the internet.
+
+If the window says it could not install Python, follow its instructions (it points you to
+python.org), then double-click `install_stickerapp.bat` again.
+
+**Step 3. Close the Liene Photo app** if you have it. It claims the same USB connection as
+StickerApp, so only one of them can run at a time.
+
+<details>
+<summary>The installer did not work? Set it up by hand instead.</summary>
+
+First install Python from [python.org/downloads](https://www.python.org/downloads/): open the
+downloaded file, **tick "Add python.exe to PATH"** at the bottom of the first screen, and click
+**Install Now**. Then:
+
+**A. Open PowerShell.** PowerShell is a window where you type short instructions to the
+computer. It is already on every Windows PC.
+
+1. Press the **Windows key** on your keyboard (the key with the four squares, bottom left).
+2. Type **powershell**. Do not worry if it looks like nothing is happening; the search box
+   opens on its own.
+3. Click **Windows PowerShell** in the results (or press Enter).
+
+![Press the Windows key, type powershell, click Windows PowerShell](docs/images/step-powershell.svg)
+
+A window with a blinking cursor opens. Nothing you type there can hurt the computer as long as
+you type what this guide says.
+
+(Prefer the older Command Prompt? Press the Windows key, type **cmd** and press Enter. The
+commands below work in both.)
+
+**B. Tell PowerShell where StickerApp is.** PowerShell always starts in your own user
+folder (you will see something like `PS C:\Users\YourName>`). It needs to be told to "go into"
+the StickerApp folder first. The word for that is `cd`, short for "change directory".
+
+Type this and press **Enter**:
+
+        cd Documents\StickerAppPublic-main
+
+The text before the `>` changes to end with `StickerAppPublic-main`. That means you are in the right
+place. If you see "Cannot find path", the folder is not in Documents or has a different name.
+Check the name in File Explorer and try again.
+
+> Tip: you can also open the StickerApp folder in File Explorer, click the address bar at the
+> top, type `powershell` and press Enter. That opens PowerShell already inside the folder, and
+> you can skip the `cd` line.
+
+**C. Run the install commands.** Type this line, press **Enter**, and wait until the
+`PS C:\...>` prompt comes back (a few seconds):
 
         py -m venv .venv
+
+Then type this line and press **Enter**. It downloads what StickerApp needs and prints a lot of
+text for a minute or two. That is normal.
+
         .venv\Scripts\python.exe -m pip install -r requirements.txt
 
-2. **Close the Liene Photo app** if you have it. It claims the same USB connection as StickerApp,
-   so only one of them can run at a time.
+When the prompt comes back and the last lines say **Successfully installed**, you are done.
+
+![What PowerShell looks like in steps B and C](docs/images/step-cd.svg)
+
+If you get **'py' is not recognized**, Python was installed without the PATH box ticked. Run the
+Python installer again, choose **Modify** or **Repair**, and tick "Add python.exe to PATH" (or
+uninstall and reinstall, ticking the box). Then open a **new** PowerShell window and repeat
+steps B and C.
+
+</details>
 
 ### Part 2: Set up Lumabooth
 
@@ -80,7 +163,7 @@ whenever you start a new event.
 
 1. Plug the S1 into the PC with its USB cable and **press its power button**. The S1 goes to
    sleep after a while and disappears from the PC, so you may need to press the button again later.
-2. In the repo folder, **double-click one of these files:**
+2. In the StickerApp folder (the one you put in Documents), **double-click one of these files:**
 
    | File | What happens |
    |---|---|

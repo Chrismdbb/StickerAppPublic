@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360" font-family="Segoe UI, Arial, sans-serif">
+<rect width="760" height="360" fill="#2b5797"/>
+<rect x="150" y="30" width="460" height="320" rx="10" fill="#f3f3f3" stroke="#bbb"/>
+<rect x="175" y="50" width="410" height="38" rx="19" fill="#fff" stroke="#0067c0" stroke-width="2"/>
+<text x="200" y="75" font-size="16" fill="#222">powershell</text>
+<text x="175" y="118" font-size="13" fill="#666">Best match</text>
+<rect x="175" y="128" width="410" height="60" rx="6" fill="#dbe9f9" stroke="#0067c0"/>
+<rect x="188" y="140" width="36" height="36" rx="4" fill="#012456"/>
+<text x="196" y="165" font-size="16" fill="#fff" font-family="Consolas, monospace">&gt;_</text>
+<text x="236" y="156" font-size="16" fill="#222" font-weight="600">Windows PowerShell</text>
+<text x="236" y="176" font-size="12" fill="#666">App</text>
+<circle cx="140" cy="158" r="16" fill="#cf222e"/>
+<text x="140" y="164" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">2</text>
+<path d="M156 158 H172" stroke="#cf222e" stroke-width="4"/>
+<circle cx="140" cy="69" r="16" fill="#cf222e"/>
+<text x="140" y="75" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">1</text>
+<path d="M156 69 H172" stroke="#cf222e" stroke-width="4"/>
+<text x="175" y="230" font-size="14" fill="#333">1. Press the Windows key and type  powershell</text>
+<text x="175" y="254" font-size="14" fill="#333">2. Click "Windows PowerShell" (or press Enter).</text>
+<text x="175" y="278" font-size="14" fill="#333">A blue or black window opens. That is all it is.</text>
+<rect x="0" y="328" width="760" height="32" fill="#1c1c1c"/>
+<rect x="16" y="336" width="16" height="16" fill="#4cc2ff"/>
+<text x="46" y="349" font-size="12" fill="#ddd">Start (Windows key)</text>
+</svg>

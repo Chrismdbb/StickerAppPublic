@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="330" viewBox="0 0 760 330">
+<rect width="760" height="330" rx="8" fill="#012456"/>
+<rect width="760" height="30" rx="8" fill="#e8e8e8"/>
+<text x="14" y="20" font-size="13" fill="#222" font-family="Segoe UI, Arial, sans-serif">Windows PowerShell</text>
+<g font-family="Consolas, Menlo, monospace" font-size="16" fill="#eee">
+<text x="16" y="62">PS C:\Users\Sam&gt; <tspan fill="#ffe36e">cd Documents\StickerAppPublic-main</tspan></text>
+<text x="16" y="92">PS C:\Users\Sam\Documents\StickerAppPublic-main&gt; <tspan fill="#ffe36e">py -m venv .venv</tspan></text>
+<text x="16" y="122">PS C:\Users\Sam\Documents\StickerAppPublic-main&gt; <tspan fill="#ffe36e">.venv\Scripts\python.exe -m pip install -r requirements.txt</tspan></text>
+<text x="16" y="152" fill="#9fd89f">Successfully installed numpy opencv-python-headless pillow ...</text>
+<text x="16" y="182">PS C:\Users\Sam\Documents\StickerAppPublic-main&gt; _</text>
+</g>
+<g font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#fff">
+<text x="16" y="230">Yellow = what you type. Your name will be in place of "Sam".</text>
+<text x="16" y="254">Press Enter after each line, and wait until the "PS C:\..." prompt comes back.</text>
+<text x="16" y="278">The second one takes a minute or two and prints a lot of text. That is normal.</text>
+</g>
+</svg>

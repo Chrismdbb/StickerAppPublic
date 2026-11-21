@@ -484,12 +484,22 @@ class Manager(threading.Thread):
                     self.progress[jid] = "Starting"
             elif t == "created":
                 self.progress[jid] = "Job accepted by printer"
+            elif t == "recovered":
+                with self.lock:
+                    p.raw = e["state"]
+                    if p.state == "attention":
+                        p.state, p.detail = "busy", f"Printing job #{jid}"
+                log.info("Job %s on %s: problem cleared, printing again", jid, p.serial)
             elif t == "slow":
                 # Past the normal print time: the printer's own status says what is wrong.
                 st = e["state"]
-                msg = friendly_state(st) or (
-                    f"This print is taking longer than normal (printer state {'/'.join(st)}). "
-                    "Check the printer's light, paper and for a jam.")
+                if st[0] == "60":
+                    fallback = (f"The printer reports a problem (state {'/'.join(st)}). "
+                                "Check the printer's light, paper, ink and for a jam.")
+                else:
+                    fallback = (f"This print is taking longer than normal (printer state {'/'.join(st)}). "
+                                "Check the printer's light, paper and for a jam.")
+                msg = friendly_state(st) or fallback
                 with self.lock:
                     p.raw = st
                     if p.detail != msg:

@@ -27,14 +27,21 @@ PAPER_WAIT = 1800.0     # longest a print waits for someone to reload paper befo
 PAPER_PROBLEM ="Paper problem: out of paper, or the paper was pulled out. Reload the paper, then press Resume."
 
 
-def friendly_state(raw):
-    """Plain-language text for a printer state we have learned, else None.
+# Alert codes seen on the real S1 (all with printer-state 60, sub-state 3015; amber/flashing light).
+# Learned Oct-Nov 2026. The S1 holds the job and carries on by itself once the problem is fixed.
+KNOWN_ALERTS = {
+    "5306": PAPER_PROBLEM,                                   # paper pulled out mid-print
+    "5401": "Out of paper: the tray is empty. Load paper, then press Paper loaded and Resume.",
+    "8101": "Out of ink: replace the ink. The sheet carries on by itself once it is fixed.",
+}
 
-    Seen on the real S1 (amber light) after the paper was pulled out mid-print:
-    printer-state 60, sub-state 3015, alert 5306.
-    """
-    if raw and raw[0] == "60" and len(raw) > 2 and "5306" in raw[2]:
-        return PAPER_PROBLEM
+
+def friendly_state(raw):
+    """Plain-language text for a printer state we have learned, else None."""
+    if raw and raw[0] == "60" and len(raw) > 2:
+        for code, text in KNOWN_ALERTS.items():
+            if code in raw[2]:
+                return text
     return None
 
 
@@ -259,12 +266,14 @@ class S1Link:
                 progress(i + 1, total)
 
     def run_job(self, image, plt, on_event=None, idle_wait=20.0, job_timeout=420.0,
-                slow_after=150.0, check_every=10.0):
+                slow_after=150.0, check_every=10.0, check_after=10.0):
         """Print and cut one sheet. Blocks until the printer reports it finished.
 
         A sheet normally takes about 2 min 15 s. Once the print stage has run for `slow_after`
         seconds, the printer's own status is read every `check_every` seconds and reported as a
         "slow" event, so a problem (no paper, jam) shows up long before `job_timeout`.
+        Faults (printer-state 60: no paper, no ink, ...) only show once a job has started, so the
+        status is also read from `check_after` seconds in and reported as soon as state 60 appears.
         """
         emit = on_event or (lambda e: None)
         stage = "idle-wait"
@@ -290,7 +299,8 @@ class S1Link:
             stage = "print"
             print_start = time.time()
             deadline = print_start + job_timeout
-            next_check = print_start + slow_after
+            next_check = print_start + min(check_after, slow_after)
+            faulted = False
             info = {}
             while True:
                 time.sleep(3)
@@ -300,7 +310,14 @@ class S1Link:
                     next_check = time.time() + check_every
                     try:
                         st = self.get_state()
-                        emit({"type": "slow", "state": st, "elapsed": time.time() - print_start})
+                        elapsed = time.time() - print_start
+                        fault = st[0] == "60" or bool(friendly_state(st))
+                        if fault or elapsed >= slow_after:
+                            faulted = faulted or fault
+                            emit({"type": "slow", "state": st, "elapsed": elapsed})
+                        elif faulted:
+                            faulted = False
+                            emit({"type": "recovered", "state": st})
                         if friendly_state(st):
                             # The S1 holds the job while the paper is missing and carries on once it
                             # is reloaded, so keep waiting (up to PAPER_WAIT) instead of timing out.
